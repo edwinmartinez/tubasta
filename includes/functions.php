@@ -5,80 +5,65 @@
 ## Copyright ©2009 MyPHPAuction. All rights reserved.	##
 ##-------------------------------------------------------------##
 #################################################################
-
 function header_redirect ($redirect_url)
 {
 	echo "<script>document.location.href='" . $redirect_url . "'</script>";
 }
-
 function check_pin ($pin_generated, $pin_submitted)
 {
 	return (substr(md5($pin_generated),15,8) == $pin_submitted) ? TRUE : FALSE;
 }
-
 function generate_pin ($pin_submitted)
 {
 	return substr(md5($pin_submitted),15,8);
 }
-
 function show_pin_image ($full_pin, $generated_pin, $image_url = '')
 {
   	## create an image not a text for the pin
 	$font  = 6;
 	$width  = ImageFontWidth($font) * strlen($generated_pin);
 	$height = ImageFontHeight($font);
-
 	$im = @imagecreate ($width,$height);
 	$background_color = imagecolorallocate ($im, 219, 239, 249); //cell background
 	$text_color = imagecolorallocate ($im, 0, 0,0);//text color
 	imagestring ($im, $font, 0, 0,  $generated_pin, $text_color);
 	touch($image_url . 'uplimg/site_pin_' . $full_pin . '.jpg');
 	imagejpeg($im, $image_url . 'uplimg/site_pin_' . $full_pin . '.jpg');
-
 	$image_output = '<img src="' . $image_url . 'uplimg/site_pin_' . $full_pin . '.jpg">';
-
 	imagedestroy($im);
-
 	return $image_output;
 }
-
 function unlink_pin()
 {
 	global $session;
-
 	$path = (IN_ADMIN == 1) ? '../' : '';
-
 	if ($session->is_set('pin_value'))
 	{
 		@unlink($path.'uplimg/site_pin_'.$session->value('pin_value').'.jpg');
 		$session->unregister('pin_value');
 	}
-
 	if ($session->is_set('admin_pin_value'))
 	{
 		@unlink($path.'uplimg/site_pin_'.$session->value('admin_pin_value').'.jpg');
 		$session->unregister('admin_pin_value');
 	}
 }
-
 function sanitize_var($value)
 {
 	if (!is_numeric($value))
 	{
 		//$value = ereg_replace("[^A-Za-z0-9_ ]", "", $value); //deprecated
 		$value = preg_replace("/[^A-Za-z0-9_ ]/", "",  $value);
-
 		$value = str_replace('amp','and',$value);
 		$value = str_replace('quot','',$value);
 		$value = str_replace('039','',$value);
 		$value = str_replace(' ','-',$value);
 	}
-
 	return $value;
 }
-
 function process_link($base_url, $var_array = NULL, $overwrite_amp = false)
 {
+	if($base_path == 'index') { echo "<pre>".$base_url." path: ".$path." output:".$output."</pre>\n"; }
 	global $setts;
 	
 	$ssl_url_simple = array('login', 'register');
@@ -87,11 +72,9 @@ function process_link($base_url, $var_array = NULL, $overwrite_amp = false)
 	$amp = ($overwrite_amp) ? '_AND_' : '&';
 	
 	$ssl_url_array = ($setts['enable_enhanced_ssl']) ? $ssl_url_enhanced : $ssl_url_simple;
-
 	(string) $output = NULL;
-
 	$path = ($setts['is_ssl']==1 && (in_array($base_url, $ssl_url_array))) ? $setts['site_path_ssl'] : $setts['site_path'];
-
+	
 	if ($setts['is_mod_rewrite'] && $var_array)
 	{
 		if ($var_array)
@@ -118,17 +101,15 @@ function process_link($base_url, $var_array = NULL, $overwrite_amp = false)
 			$output = substr($output,0,((-1) * strlen($amp)));
 		}
 	}
-
+	
 	return $path . $output;
 }
 
 function category_navigator ($parent_id, $show_links = true, $show_category = true, $page_link = null, $additional_vars = null, $none_msg = null)
 {
 	global $category_lang, $db;
-
 	(string) $display_output = NULL;
 	(int) $counter = 0;
-
 	$none_msg = ($none_msg) ? $none_msg : GMSG_ALL_CATEGORIES;
 	
 	$page_link = ($page_link) ? $page_link : $_SERVER['PHP_SELF'];
@@ -138,7 +119,6 @@ function category_navigator ($parent_id, $show_links = true, $show_category = tr
 		while ($root_id > 0)
 		{
 			$row_category = $db->get_sql_row("SELECT category_id, name, parent_id FROM " . DB_PREFIX . "categories WHERE category_id=" . $root_id . " LIMIT 0,1");
-
 			if($counter == 0)
 			{
 				$display_output = $category_lang[$row_category['category_id']];
@@ -156,66 +136,49 @@ function category_navigator ($parent_id, $show_links = true, $show_category = tr
 		}
 		$display_output = (($show_links && $show_category) ? '<a href="' . $page_link . '?' . $additional_vars . '"><b> ' . GMSG_CATEGORY . ':</b></a> ' : '') . $display_output;
 	}
-
 	$display_output = (empty($display_output)) ? $none_msg : $display_output;
-
 	return $display_output;
 }
-
 function http_post($server, $port, $url, $vars)
 {
 	// get urlencoded vesion of $vars array
 	(string) $urlencoded = null;
-
 	foreach ($vars as $index => $value)
 	{
 		$urlencoded .= urlencode($index ) . '=' . urlencode($value) . '&';
 	}
-
 	$urlencoded = substr($urlencoded,0,-1);
-
 	$headers = "POST " . $url . " HTTP/1.0\r\n" .
 		"Content-Type: application/x-www-form-urlencoded\r\n" .
 		"Content-Length: " . strlen($urlencoded) . "\r\n\r\n";
-
 	$fp = fsockopen($server, $port, $errno, $errstr, 10);
 	if ($log)
 	{
 		if (!$fp) fputs($fh,"ERROR: fsockopen failed.\r\nError no: " . $errno . " - " . $errstr . "\n");
 		else fputs($fh,"Fsockopen success.\n");
 	}
-
 	fputs($fp, $headers);
 	fputs($fp, $urlencoded);
-
 	$ret = "";
 	while (!feof($fp)) $ret .= fgets($fp, 1024);
-
 	fclose($fp);
 	return $ret;
 }
-
 function paginate($start,$limit,$total,$file_path,$other_params)
 {
 	(string) $display_output = null;
-
 	$all_pages = ceil($total / $limit);
-
 	$current_page = floor($start / $limit) + 1;
-
 	if ($all_pages > 10)
 	{
 		$max_pages = ($all_pages > 9) ? 9 : $all_pages;
-
 		if ($all_pages > 9)
 		{
 			if ($current_page >= 1 && $current_page <= $all_pages)
 			{
 				$display_output .= ($current_page > 4) ? ' ... ' : ' ';
-
 				$min_pages = ($current_page > 4) ? $current_page : 5;
 				$max_pages = ($current_page < $all_pages - 4) ? $current_page : $all_pages - 4;
-
 				for($i=$min_pages - 4; $i<$max_pages + 5; $i++)
 				{
 					$display_output .= display_link($file_path . '?start=' . (($i - 1) * $limit) . $other_params, $i, (($i == $current_page) ? false : true));
@@ -235,94 +198,69 @@ function paginate($start,$limit,$total,$file_path,$other_params)
 			$display_output .= display_link($file_path . '?start=' . (($i - 1) * $limit) . $other_params, $i, (($i == $current_page) ? false : true));
 		}
 	}
-
 	if ($current_page > 1)
 	{
 		$display_output = '[<a href="' . $file_path . '?start=0' . $other_params . '">&lt;&lt;</a>] '.
 			'[<a href="' . $file_path . '?start=' . (($current_page - 2) * $limit) . $other_params . '">&lt;</a>] ' . $display_output;
 	}
-
 	if ($current_page < $all_pages)
 	{
 		$display_output .= ' [<a href="' . $file_path . '?start=' . ($current_page * $limit) . $other_params . '">&gt;</a>] '.
 			'[<a href="' . $file_path . '?start=' . (($all_pages - 1) * $limit) . $other_params . '">&gt;&gt;</a>]';
 	}
-
 	return $display_output;
 }
-
 function page_order($file_path, $order_field, $start, $limit, $other_params, $field_name = null)
 {
 	(string) $display_output = null;
-
 	$file_extension = (IN_ADMIN == 1) ? '../' : '';
-
 	$display_output = '<a href="' . $file_path . '?start=' . $start . '&limit=' . $limit . $other_params . '
 		&order_field=' . $order_field . '&order_type=ASC">'.
 		'<img src="' . $file_extension . 'images/s_asc.png" align="absmiddle" border="0" alt="' . $field_name . ' ' . GMSG_ASCENDING . '"></a>'.
 		'<a href="' . $file_path . '?start=' . $start . '&limit=' . $limit . $other_params . '
 		&order_field=' . $order_field . '&order_type=DESC">'.
 		'<img src="' . $file_extension . 'images/s_desc.png" align="absmiddle" border="0" alt="' . $field_name . ' ' . GMSG_DESCENDING . '"></a>';
-
 	return $display_output;
 }
-
 function field_display($field_value, $output_false = '-', $output_true = null)
 {
 	(string) $display_output = null;
-
 	$display_output = ($field_value) ? (($output_true) ? $output_true : $field_value) : $output_false;
-
 	return $display_output;
 }
-
 function display_pagination_results ($start, $limit, $total)
 {
 	(string) $display_output = null;
-
 	$end = ($start + $limit > $total) ? $total : ($start + $limit);
-
 	if ($total)
 	{
 		$start++;
 	}
-
 	$display_output = GMSG_DISPLAYING_RESULTS . ' <b>' . $start . ' - ' . $end . '</b> ' . GMSG_FROM_LOW. ' <b>' . $total . '</b>';
-
 	return $display_output;
 }
-
 function display_link ($link_url, $link_message, $active = true)
 {
 	(string) $display_output = null;
-
 	$display_output = ($active) ? '<a href="' . $link_url . '">' : '[ ';
 	$display_output .= $link_message;
 	$display_output .= ($active) ? '</a> ' : ' ] ';
-
 	return $display_output;
 }
-
 function remove_spaces($input_variable)
 {
 	$output_variable = str_replace(' ', '', $input_variable);
-
 	return $output_variable;
 }
-
 /**
  * MyPHPAuction functions start here!
  */
-
 function list_skins($location = 'site', $drop_down = false, $selected_skin = null, $display_none = false, $dd_multiple = false)
 {
 	(array) $output = null;
 	(string) $display_output = null;
-
 	$relative_path = ($location == 'site') ? '' : '../';
-
 	$handle = opendir($relative_path . 'themes');
-
 	while ($file = readdir($handle))
 	{
 		if (!preg_match("/[.]/", $file))
@@ -330,45 +268,34 @@ function list_skins($location = 'site', $drop_down = false, $selected_skin = nul
 			$output[] = $file;
 		}
 	}
-
 	closedir($handle);
-
 	/**
 	 * this is an enhancement of the function, to create a drop down menu to select the skin
 	 * in the admin area
 	 */
-
 	if ($drop_down)
 	{
 		$display_output = '<select name="default_theme' . (($dd_multiple) ? '[]' : '') . '"> ';
-
 		if ($display_none)
 		{
 			$display_output .= '<option value="" selected>' . GMSG_DEFAULT . '</option> ';			
 		}
-
 		foreach ($output as $value)
 		{
 			$display_output .= '<option value="' . $value . '" ' . (($value == $selected_skin) ? 'selected' : '') . '>' . $value . '</option> ';
 		}
-
 		$display_output .= '</select>';
 	}
 	return ($drop_down) ? $display_output : $output;
 }
-
 function list_languages($location = 'site', $drop_down = false, $selected_language = null, $show_flags = false)
 {
 	global $db, $setts;
 	(array) $output = null;
 	(array) $language_flags = null;
 	(string) $display_output = null;
-
-
 	$relative_path = ($location == 'site') ? '' : '../';
-
 	$handle = opendir($relative_path . 'language');
-
 	while ($file = readdir($handle))
 	{
 		if (!preg_match("/[.]/", $file))
@@ -376,23 +303,18 @@ function list_languages($location = 'site', $drop_down = false, $selected_langua
 			$output[] = $file;
 		}
 	}
-
 	closedir($handle);
-
 	/**
 	 * this is an enhancement of the function, to create a drop down menu to select the language
 	 * in the admin area
 	 */
-
 	if ($drop_down)
 	{
 		$display_output = '<select name="language"> ';
-
 		foreach ($output as $value)
 		{
 			$display_output .= '<option value="' . $value . '" ' . (($value == $selected_language) ? 'selected' : '') . '>' . $value . '</option> ';
 		}
-
 		$display_output .= '</select>';
 	}
 	else if ($show_flags)
@@ -403,49 +325,35 @@ function list_languages($location = 'site', $drop_down = false, $selected_langua
 			{
 				$language_flags[] = '<a href="' . process_link('index', array('change_language' => $value)) . '"><img src="themes/' . $setts['default_theme'] . '/img/' . $value . '.gif" border="0" alt="' . $value . '"></a>';
 			}
-
 			$display_output = $db->implode_array($language_flags, ' &nbsp; ');
 		}
 	}
 	return ($drop_down || $show_flags) ? $display_output : $output;
 }
-
 function timezones_drop_down($selected_value = null)
 {
 	global $db, $setts;
-
 	(string) $display_output = null;
-
 	$selected_value = (!empty($selected_value)) ? $selected_value : $setts['time_offset'];
-
 	$display_output = '<select name="time_zone"> ';
-
 	$sql_select_timezones = $db->query("SELECT value, caption FROM
 		" . DB_PREFIX . "timesettings");
-
 	while ($time_zone = $db->fetch_array($sql_select_timezones))
 	{
 		$display_output .= '<option value="' . $time_zone['value'] . '" ' . (($time_zone['value'] == $selected_value) ? 'selected' : '') . '>' . $time_zone['caption'] . '</option> ';
 	}
-
 	$display_output .= '</select>';
-
 	return $display_output;
 }
-
 ## this function will be used to save email and language files in admin
 function save_file($file_name, $file_content)
 {
 	global $db;
-
 	(string) $display_output = null;
-
 	$file_content = $db->add_special_chars($file_content);
-
 	if (is_writable($file_name))
 	{
 		$fp = fopen($file_name, 'w');
-
 		if (!$fp)
 		{
 			$display_output = GMSG_CANNOT_OPEN_FILE . ' [ ' . $file_name . ' ]';
@@ -458,54 +366,38 @@ function save_file($file_name, $file_content)
 		{
 			$display_output = GMSG_FILE_UPDATED . ' [ ' . $file_name . ' ]';
 		}
-
 		fclose($fp);
 	}
 	else
 	{
 		$display_output = GMSG_FILE_NOT_WRITABLE . ' [ ' . $file_name . ' ]';
 	}
-
 	return $display_output;
 }
-
-
 function categories_list ($selected_category_id, $category_id = 0, $custom_fees = true)
 {
 	global $db;
-
 	(string) $display_output = null;
-
 	$addl_query = ($custom_fees) ? " AND custom_fees=1" : '';
-
 	$sql_select_categories = $db->query("SELECT category_id, name FROM " . DB_PREFIX . "categories WHERE
 		parent_id=0 AND user_id=0" . $addl_query);
-
 	$nb_categories = $db->num_rows($sql_select_categories);
-
 	$display_output = '<select name="category_id"> '.
 		'<option value="0" selected>' . (($custom_fees) ? GMSG_DEFAULT : GMSG_ALL_CATEGORIES) . '</option> ';
-
 	$display_output .= ($nb_categories) ? '<option value="0">' . GMSG_LIST_SEPARATOR . '</option>' : '';
-
 	while ($category_details = $db->fetch_array($sql_select_categories))
 	{
 		$display_output .= '<option value="' . $category_details['category_id'] . '" ' . (($category_details['category_id'] == $selected_category_id) ? 'selected' : '') . '>' . $category_details['name'] . '</option>';
 	}
-
 	$display_output .= '</select>';
-
 	return $display_output;
 }
-
 function voucher_form ($voucher_type, $voucher_value = null, $new_table = true)
 {
 	global $db;
 	(string) $display_output = null;
-
 	$is_voucher = $db->count_rows('vouchers', "WHERE voucher_type='" . $voucher_type . "' AND
 		(exp_date=0 OR exp_date>" . CURRENT_TIME . ") AND (uses_left>0 OR nb_uses=0)");
-
 	if ($is_voucher)
 	{
 		$display_output = ($new_table) ? '<br><table width="100%" border="0" cellpadding="3" cellspacing="2" class="border">' : '';
@@ -526,15 +418,12 @@ function voucher_form ($voucher_type, $voucher_value = null, $new_table = true)
       	'	</tr> ';
    	$display_output .= ($new_table) ? '</table>' : '';
 	}
-
 	return $display_output;
 }
-
 function terms_box ($terms_type, $selected_value)
 {
 	global $db;
 	(string) $display_output = null;
-
 	if ($terms_type == 'registration')
 	{
 		$new_table = true;
@@ -549,14 +438,12 @@ function terms_box ($terms_type, $selected_value)
 		$terms = array('enabled' => $db->layout['enable_auct_terms'], 'content' => $db->layout['auct_terms_content']);
 		$agreement_msg = GMSG_AUCT_TERMS_AGREEMENT_EXPL;
 	}
-
 	if ($terms['enabled'])
 	{
 		if ($new_table)
 		{
 			$display_output = '<br><table width="100%" border="0" cellpadding="3" cellspacing="2" class="border"> ';
 		}
-
       $display_output .= '	<tr> '.
          '		<td colspan="' . $colspan . '" class="c3">' . GMSG_TERMS_AND_CONDITIONS . '</td> '.
       	'	</tr> '.
@@ -577,69 +464,50 @@ function terms_box ($terms_type, $selected_value)
       	$display_output .='</table>';
       }
 	}
-
 	return $display_output;
 }
-
 function title_resize($text)
 {
 	global $db;
 	(string) $display_output = null;
-
 	$max_length = 15;
-
 	$text = $db->add_special_chars($text);
 	$text_words = explode(' ', $text);
-
 	$nb_words = count($text_words);
-
 	for ($i=0; $i<$nb_words; $i++)
 	{
 		$display_output[] = (strlen($text_words[$i]) > $max_length) ? substr($text_words[$i], 0, $max_length-3) . '... ' : $text_words[$i];
 	}
-
 	return $db->implode_array($display_output, ' ');
 }
-
 function online_users()
 {
 	$data_file = 'online_users.txt';
-
 	$session_time = 60; //time in **minutes** to consider someone online before removing them
-
 	if(!file_exists($data_file))
 	{
 		$fp = fopen($data_file, 'w+');
 		fclose($fp);
 	}
-
 	$ip = $_SERVER['REMOTE_ADDR'];
 	$users = array();
 	$online_users = array();
-
 	//get users part
 	$fp = fopen($data_file, 'r');
 	flock($fp, LOCK_SH);
-
 	while(!feof($fp))
 	{
 		$users[] = rtrim(fgets($fp, 32));
 	}
-
 	flock($fp, LOCK_UN);
 	fclose($fp);
-
-
 	//cleanup part
 	$x = 0;
 	$already_in = false;
-
 	foreach($users as $key => $data)
 	{
 		if(!empty($data)){
-
 			list( , $last_visit) = explode('|', $data);
-
 			if(CURRENT_TIME - $last_visit >= $session_time * 60)
 			{
 				$users[$x] = '';
@@ -655,96 +523,78 @@ function online_users()
 			$x++;
 		}
 	}
-
 	if($already_in == false)
 	{
 		$users[] = $ip . '|' . time();
 	}
-
 	//write file
-	$fp = fopen($data_file, 'w+');
-	flock($fp, LOCK_EX);
-
-	$nb_users = 0;
-	foreach($users as $user)
-	{
-		if(!empty($user))
+	if (is_writable($data_file)) {  // so we check before we write to the file
+		$fp = fopen($data_file, 'w+');
+		flock($fp, LOCK_EX);
+		$nb_users = 0;
+		foreach($users as $user)
 		{
-			fwrite($fp, $user . "\r\n");
-			$nb_users++;
+			if(!empty($user))
+			{
+				fwrite($fp, $user . "\r\n");
+				$nb_users++;
+			}
 		}
+		flock($fp, LOCK_UN);
+		fclose($fp);
+	} else {
+		echo "File: " . $data_file . " is not writable";
 	}
-	flock($fp, LOCK_UN);
-	fclose($fp);
-
 	return $nb_users;
 }
-
 function blocked_user ($user_id, $owner_id)
 {
 	global $db;
-
 	$is_blocked = $db->count_rows('blocked_users', "WHERE
 		user_id='" . intval($user_id) . "' AND owner_id='" . intval($owner_id) . "'");
-
 	$output = ($is_blocked) ? true : false;
-
 	return $output;
 }
-
 function block_reason ($user_id, $owner_id)
 {
 	global $db;
-
 	$block_details = $db->get_sql_row("SELECT b.*, u.username FROM " . DB_PREFIX . "blocked_users b
 		LEFT JOIN " . DB_PREFIX . "users u ON u.user_id=b.user_id WHERE
 		b.user_id='" . $user_id . "' AND b.owner_id='" . $owner_id . "'");
-
 	$block_message = '<p class="errormessage">' . MSG_BLOCKED_USER_MSG .
 		(($block_details['show_reason']) ? '<br><b>' . MSG_REASON .'</b>: ' . $block_details['block_reason'] : '') . '</p>';
-
 	return $block_message;
 }
-
 function check_banned ($banned_address, $address_type)
 {
 	global $db;
 	$output = array('result' => false, 'display' => null);
-
 	$is_banned = $db->count_rows('banned', "WHERE banned_address='" . $banned_address . "' AND address_type='" . $address_type . "'");
-
 	if ($is_banned)
 	{
 		$output['result'] = true;
-
 		$output['display'] = '<p class="errormessage" align="center">' . MSG_BANNED_EXPL_A . ' <b>'.
 			(($address_type == 1) ? MSG_IP_ADDRESS : MSG_EMAIL_ADDRESS) . '</b> ' . MSG_BANNED_EXPL_B . '</p>';
 	}
-
 	return $output;
 }
-
 function meta_tags ($base_url, $parent_id, $auction_id, $wanted_ad_id)
 {
 	global $db, $category_lang, $setts;
 	(array) $output = null;
 	(array) $subcats_array = null;
-
 	if (preg_match("/auction_details.php/i", $base_url))
 	{
 		$item_details = $db->get_sql_row("SELECT auction_id, name, end_time, category_id FROM " . DB_PREFIX . "auctions WHERE
 			auction_id='" . $auction_id . "'");
-
 		$parent_id = $item_details['category_id'];
 	}
 	else if (preg_match("/wanted_details.php/i", $base_url))
 	{
 		$item_details = $db->get_sql_row("SELECT wanted_ad_id, name, end_time, category_id FROM " . DB_PREFIX . "wanted_ads WHERE
 			wanted_ad_id='" . $wanted_ad_id . "'");
-
 		$parent_id = $item_details['category_id'];
 	}
-
 	if($parent_id > 0)
 	{
 		$root_id = $parent_id;
@@ -752,19 +602,15 @@ function meta_tags ($base_url, $parent_id, $auction_id, $wanted_ad_id)
 		{
 			$row_category = $db->get_sql_row("SELECT category_id, parent_id FROM " . DB_PREFIX . "categories WHERE category_id=" . $root_id . " LIMIT 0,1");
 			$subcats_array[] = $category_lang[$row_category['category_id']];
-
 			$root_id = $row_category['parent_id'];
 		}
-
 		$subcats_array = array_reverse($subcats_array);
 	}
-
 	/* now generate the title and meta tags */
 	if (preg_match("/auction_details.php/i", $base_url))
 	{
 		$output['title'] = $db->add_special_chars($item_details['name']) . ' (' . MSG_AUCTION_ID . ': ' . $item_details['auction_id'] . ', ' .
 			GMSG_END_TIME . ': ' . show_date($item_details['end_time']) . ') - ' . $setts['sitename'];
-
 		$output['meta_tags'] = '<meta name="description" content="' . MSG_MTT_FIND . ' ' . $db->add_special_chars($item_details['name']) . ' ' .
 			MSG_MTT_IN_THE . ' ' . $db->add_special_chars($db->implode_array($subcats_array, ' - ')) . ' ' . MSG_MTT_CATEGORY_ON . ' ' . $setts['sitename'] . '"> '.
 			'<meta name="keywords" content="' . $db->add_special_chars($item_details['name']) . ', ' . $db->add_special_chars($db->implode_array($subcats_array, ', ')) . ', ' .
@@ -774,7 +620,6 @@ function meta_tags ($base_url, $parent_id, $auction_id, $wanted_ad_id)
 	{
 		$output['title'] = $db->add_special_chars($item_details['name']) . ' (' . MSG_WANTED_AD_ID . ': ' . $item_details['wanted_ad_id'] . ', ' .
 			GMSG_END_TIME . ': ' . show_date($item_details['end_time']) . ') - ' . $setts['sitename'];
-
 		$output['meta_tags'] = '<meta name="description" content="' . MSG_MTT_FIND . ' ' . $db->add_special_chars($item_details['name']) . ' ' .
 			MSG_MTT_IN_THE . ' ' . $db->add_special_chars($db->implode_array($subcats_array, ' - ')) . ' ' . MSG_MTT_CATEGORY_ON . ' ' . $setts['sitename'] . '"> '.
 			'<meta name="keywords" content="' . $db->add_special_chars($item_details['name']) . ', ' . $db->add_special_chars($db->implode_array($subcats_array, ', ')) . ', ' .
@@ -783,11 +628,9 @@ function meta_tags ($base_url, $parent_id, $auction_id, $wanted_ad_id)
 	else if (preg_match("/categories.php/i", $base_url))
 	{
 		$output['title'] = ((is_array($subcats_array)) ? $db->add_special_chars($db->implode_array($subcats_array, ' - ')) . ' - ' : '') . $setts['sitename'];
-
 		$main_category_id = $db->main_category($parent_id);
 		$category_details = $db->get_sql_row("SELECT meta_description, meta_keywords FROM " . DB_PREFIX . "categories WHERE
 			category_id='" . $main_category_id . "'");
-
 		if (!empty($category_details['meta_description']) && !empty($category_details['meta_keywords']))
 		{
 			$output['meta_tags'] = '<meta name="description" content="' . $db->add_special_chars($category_details['meta_description']) . '"> '.
@@ -801,13 +644,10 @@ function meta_tags ($base_url, $parent_id, $auction_id, $wanted_ad_id)
 	else
 	{
 		$output['title'] = $setts['sitename'];
-
 		$output['meta_tags'] = $db->add_special_chars($setts['metatags']);
 	}
-
 	return $output;
 }
-
 function remove_cache_img()
 {
 	global $fileExtension;
@@ -834,14 +674,11 @@ function remove_cache_img()
 	closedir($cache_dir);
 	clearstatcache(); 	
 }
-
 function user_pics ($user_id, $reputation_only = false)
 {
 	global $db, $setts, $fileExtension;	
 	(string) $display_output = null;
-
 	$user_details = $db->get_sql_row("SELECT enable_aboutme_page, shop_active, seller_verified, enable_profile_page FROM " . DB_PREFIX . "users WHERE user_id='" . $user_id . "'");
-
 	$positive_reputation = $db->count_rows('reputation', "WHERE user_id='" . $user_id . "' AND reputation_rate IN (4,5) AND submitted=1");
 	$negative_reputation = $db->count_rows('reputation', "WHERE user_id='" . $user_id . "' AND reputation_rate IN (1,2) AND submitted=1");
 	
@@ -872,7 +709,6 @@ function user_pics ($user_id, $reputation_only = false)
 	{
 		$display_output = ' (' . $reputation_rating_link . ') <img align=absmiddle src="' . $fileExtension . 'themes/' . $setts['default_theme'] . '/img/system/gold_star.gif" border="0">';
 	}
-
 	if (!$reputation_only)
 	{
 		if ($user_details['seller_verified'])
@@ -898,14 +734,12 @@ function user_pics ($user_id, $reputation_only = false)
 	
 	return $display_output;
 }
-
 /**
  * below are all the category counters related functions 
  */
 function auction_counter ($category_id, $operation = 'add', $auction_id = 0)
 {
 	global $db;
-
 	$can_add = ($category_id) ? true : false;
 	
 	if ($auction_id)
@@ -927,7 +761,6 @@ function auction_counter ($category_id, $operation = 'add', $auction_id = 0)
 		}		
 	}
 }
-
 function wanted_counter ($category_id, $operation = 'add')
 {
 	global $db;
@@ -947,7 +780,6 @@ function wanted_counter ($category_id, $operation = 'add')
 		}		
 	}
 }
-
 function user_counter ($user_id, $operation = 'add')
 {
 	global $db;
@@ -962,7 +794,6 @@ function user_counter ($user_id, $operation = 'add')
 		auction_counter($item_details['category_id'], $operation, $item_details['auction_id']);
 		auction_counter($item_details['addl_category_id'], $operation, $item_details['auction_id']);	
 	}
-
 	$sql_select_wa = $db->query("SELECT category_id, addl_category_id FROM " . DB_PREFIX . "wanted_ads WHERE 
 		owner_id='" . $user_id . "' AND active=" . $cnt_active . " AND closed=0 AND deleted!=1");
 	
@@ -973,7 +804,6 @@ function user_counter ($user_id, $operation = 'add')
 	}
 	
 }
-
 function user_account_management($user_id, $active)
 {
 	global $db;
@@ -988,11 +818,9 @@ function user_account_management($user_id, $active)
 	$db->query("UPDATE " . DB_PREFIX . "auctions SET active=" . $active . " WHERE owner_id='" . $user_id . "'");
 	$db->query("UPDATE " . DB_PREFIX . "wanted_ads SET active=" . $active . " WHERE owner_id='" . $user_id . "'");
 }
-
 function send_mail($to, $subject, $text_message, $from_email, $html_message = null, $from_name = null, $send = true) 
 {
 	global $setts, $current_version;
-
 	if ($send)
 	{
 		## set date
@@ -1101,7 +929,6 @@ function send_mail($to, $subject, $text_message, $from_email, $html_message = nu
 		}
 	}
 }
-
 function suspend_debit_users()
 {
 	global $db, $fees, $setts, $session, $parent_dir;
@@ -1116,7 +943,6 @@ function suspend_debit_users()
 		{
 			$addl_query[] = "payment_mode=2"; // personal mode, only suspend users that have account mode enabled
 		}
-
 		$query = $db->implode_array($addl_query, ' AND ');
 		
 		if ($setts['account_mode'] == 2 || $setts['account_mode_personal'] == 1)
@@ -1140,17 +966,14 @@ function suspend_debit_users()
 	
 	return $remove_session;
 }
-
 function last_char($value, $char = ',')
 {
 	$value = trim($value);
 	$last_char = substr($value, -1);
 			
 	$value = ($last_char == $char) ? substr($value, 0, -1) : $value;
-
 	return $value;
 }
-
 function paypal_countries_list()
 {
 	$output = array(
@@ -1404,7 +1227,6 @@ function paypal_countries_list()
 	
 	return $output;
 }
-
 function paypal_countries_drop_down($selected_country, $form_name = 'manage_account_form')
 {
 	(string) $display_output = null;
@@ -1420,14 +1242,12 @@ function paypal_countries_drop_down($selected_country, $form_name = 'manage_acco
 	
 	return $display_output;
 }
-
 function optimize_search_string($keywords)
 {
 	$output = preg_replace("/ /", ' +', $keywords);
 	
 	return $output;
 }
-
 function get_server_load() 
 {
 	$output = GMSG_NA;
@@ -1450,4 +1270,5 @@ function get_server_load()
 	
 	return ($output > 0) ? $output : GMSG_NA;
 }
+
 ?>
