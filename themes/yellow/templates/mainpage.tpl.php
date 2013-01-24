@@ -5,12 +5,11 @@
 ## Copyright ©2008 Auctionlivesoft SoftwareLTD. All rights reserved.	##
 ##-------------------------------------------------------------##
 #################################################################
-
 if ( !defined('INCLUDED') ) { die("Access Denied"); }
 ?>
 <?php if ($layout['hpfeat_nb']) { ?>
+<div class="mainPageSection">
 <?php echo $featured_auctions_header;?>
-
 <table width="100%" border="0" cellpadding="0" cellspacing="3" >
    <?php
 	$counter = 0;
@@ -24,7 +23,6 @@ if ( !defined('INCLUDED') ) { die("Access Denied"); }
       	if (!empty($item_details[$counter]['name'])) {
       		$main_image = $feat_db->get_sql_field("SELECT media_url FROM " . DB_PREFIX . "auction_media WHERE
       			auction_id='" . $item_details[$counter]['auction_id'] . "' AND media_type=1 AND upload_in_progress=0 ORDER BY media_id ASC LIMIT 0,1", 'media_url');
-
       		$auction_link = process_link('auction_details', array('name' => $item_details[$counter]['name'], 'auction_id' => $item_details[$counter]['auction_id']));?>
          <table width="100%" border="0" cellspacing="1" cellpadding="3">
             <tr>
@@ -47,9 +45,11 @@ if ( !defined('INCLUDED') ) { die("Access Denied"); }
    </tr>
    <?php } ?>
 </table>
-<div><img src="themes/<?php echo $setts['default_theme'];?>/img/pixel.gif" width="1" height="5"></div>
+</div>
+
 <?php } ?>
 <?php if ($layout['nb_recent_auct']) { ?>
+<div class="mainPageSection">
 <?php echo $recent_auctions_header;?>
 <table width="100%" border="0" cellpadding="3" cellspacing="1" class="border">
    <tr class="c4" height="15">
@@ -68,7 +68,6 @@ if ( !defined('INCLUDED') ) { die("Access Denied"); }
 		$background = ($counter++%2) ? '' : '';
 		$background .= ($item_details['bold']) ? ' bold_item' : '';
 		$background .= ($item_details['hl']) ? ' hl_item' : ''; ?>
-
 	<tr height="15" class="<?php echo $background;?>">
 		<td width="11" id="bot"><img src="themes/<?php echo $setts['default_theme'];?>/img/recent.gif" width="13" height="12" hspace="3"></td>
 		<td class="smallfont" id="bot" nowrap="nowrap"><a href="<?php echo process_link('auction_details', array('name' => $item_details['name'], 'auction_id' => $item_details['auction_id']));?>"><img src="<?php echo ((!empty($item_details["media_url"])) ? 'thumbnail.php?pic=' . $item_details["media_url"] . '&w=50&sq=Y' : 'themes/' . $setts['default_theme'] . '/img/system/noimg.gif');?>" border="0" alt="<?php echo $item_details['name'];?>" /></a></td>
@@ -81,9 +80,10 @@ if ( !defined('INCLUDED') ) { die("Access Denied"); }
 	</tr> 
    <?php } ?>
 </table>
-<div><img src="themes/<?php echo $setts['default_theme'];?>/img/pixel.gif" width="1" height="10"></div>
+</div>
 <?php } ?>
 <?php if ($layout['nb_popular_auct'] && $is_popular_items) { ?>
+<div class="mainPageSection">
 <?php echo $popular_auctions_header;?>
 <table width="100%" border="0" cellpadding="3" cellspacing="1" class="border">
    <tr class="c4" height="15">
@@ -110,11 +110,11 @@ if ( !defined('INCLUDED') ) { die("Access Denied"); }
 		<td nowrap id="bot"><?php echo item_pics($item_details);?>&nbsp;</td> 
 	</tr> 
    <?php } ?>
-
 </table>
-<div><img src="themes/<?php echo $setts['default_theme'];?>/img/pixel.gif" width="1" height="10"></div>
+</div>
 <?php } ?>
 <?php if ($layout['nb_ending_auct']) { ?>
+<div class="mainPageSection">
 <?php echo $ending_auctions_header;?>
 <table width="100%" border="0" cellpadding="3" cellspacing="1" class="border">
    <tr class="c4" height="15">
@@ -133,7 +133,6 @@ if ( !defined('INCLUDED') ) { die("Access Denied"); }
 		$background = ($counter++%2) ? '' : '';
 		$background .= ($item_details['bold']) ? ' bold_item' : '';
 		$background .= ($item_details['hl']) ? ' hl_item' : ''; ?>
-
 	<tr height="15" class="<?php echo $background;?>"> 
 		<td width="11" id="bot"><img src="themes/<?php echo $setts['default_theme'];?>/img/soon.gif" width="13" height="12" hspace="3"></td> 
       		<td nowrap="nowrap" class="smallfont" id="bot"><a href="<?php echo process_link('auction_details', array('name' => $item_details['name'], 'auction_id' => $item_details['auction_id']));?>"><img src="<?php echo ((!empty($item_details["media_url"])) ? 'thumbnail.php?pic=' . $item_details["media_url"] . '&w=50&sq=Y' : 'themes/' . $setts['default_theme'] . '/img/system/noimg.gif');?>" border="0" alt="<?php echo $item_details['name'];?>" /></a>
@@ -145,9 +144,10 @@ if ( !defined('INCLUDED') ) { die("Access Denied"); }
    </tr> 
 	<?php } ?>
 </table>
-<div><img src="themes/<?php echo $setts['default_theme'];?>/img/pixel.gif" width="1" height="10"></div>
+</div>
 <?php } ?>
 <?php if ($layout['nb_want_ads']) { ?>
+<div class="mainPageSection">
 <?php echo $recent_wa_header;?>
 <table width="100%" border="0" cellpadding="3" cellspacing="1" class="border">
    <tr class="c4" height="15">
@@ -159,7 +159,6 @@ if ( !defined('INCLUDED') ) { die("Access Denied"); }
 	while ($item_details = mysql_fetch_array($sql_select_recent_wa))
 	{
 		$background = ($counter++%2) ? '' : ''; ?>
-
 	<tr height="15" class="<?php echo $background;?>">
 		<td width="11" id="bot"><img src="themes/<?php echo $setts['default_theme'];?>/img/wanted.gif" width="13" height="12" hspace="3"></td> 
 		<td class="smallfont" nowrap="nowrap" id="bot">&nbsp;<b><?php echo show_date($item_details['start_time']);?></b></td> 
@@ -167,11 +166,6 @@ if ( !defined('INCLUDED') ) { die("Access Denied"); }
 	</tr> 
    <?php } ?>
 </table>
-<div><img src="themes/<?php echo $setts['default_theme'];?>/img/pixel.gif" width="1" height="5"></div>
+</div>
 <?php } ?>
-
 </td>
-
-
-
-

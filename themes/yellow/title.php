@@ -7,7 +7,7 @@ $imgarrwhite = "<img src='themes/".$setts['default_theme']."/img/arrow1.gif' wid
 $imgarritem = "";
 
 
-function header1($head_title, $other_classes) {
+function header1($head_title, $other_classes='') {
 	global $setts;
 	return "<div class=\"boxHeader $other_classes\"><span>$head_title</span></div>\n";
 }

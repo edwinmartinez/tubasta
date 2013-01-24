@@ -5,13 +5,11 @@
 ## Copyright ©2008 Auctionlive pro Greatclone. All rights reserved.	##
 ##-------------------------------------------------------------##
 #################################################################
-
 if ( !defined('INCLUDED') ) { die("Access Denied"); }
 ?>
 <?php echo $auction_print_header;?>
 <SCRIPT LANGUAGE="JavaScript"><!--
 myPopup = '';
-
 function openPopup(url) {
 	myPopup = window.open(url,'popupWindow','width=640,height=150,status=yes');
    if (!myPopup.opener) myPopup.opener = self;
@@ -24,7 +22,6 @@ function openPopup(url) {
 	}
 </SCRIPT>
 <?php if ($ad_display == 'live') { ?>
-
 <form name="hidden_form" action="auction_details.php" method="get" style="margin:0px;">
    <input type="hidden" name="option" />
    <input type="hidden" name="auction_id" />
@@ -32,7 +29,6 @@ function openPopup(url) {
    <input type="hidden" name="question_id" />
 </form>
 <?php } ?>
-
 <?php if ($print_button == 'show') { ?>
 <table align="center" border="0" cellpadding="3" cellspacing="3" class="errormessage">
    <tr>
@@ -40,7 +36,6 @@ function openPopup(url) {
    </tr>
 </table>
 <?php } ?>
-
 <table width="100%" border="0" cellpadding="0" cellspacing="0">
    <tr>
       <?php if ($ad_display == 'live') { ?>
@@ -305,7 +300,6 @@ function openPopup(url) {
                <td colspan="2" class="contentfont"><?php echo MSG_SWAP_OFFERS_ACCEPTED;?>
                   <?php echo ($ad_display == 'live' && !$blocked_user) ? $swap_offer_link : '';?></td>
             </tr>
-
             <?php } ?>
             <?php if ($ad_display == 'live' && !$buyout_only && !$item_details['closed']) { ?>
             <tr>
@@ -327,12 +321,10 @@ function openPopup(url) {
             <tr>
                <td colspan="2"><?php echo $auction_tax['display'];?></td>
             </tr>
-
             <?php if ($auction_tax['display_buyer']) { ?>
             <tr>
                <td colspan="2"><?php echo $auction_tax['display_buyer'];?></td>
             </tr>
-
             <?php } ?>
             <?php } ?>
             <?php echo $winners_message_board;?>
@@ -645,7 +637,6 @@ function openPopup(url) {
       	if (!empty($other_items[$counter]['name'])) {
       		$main_image = $db->get_sql_field("SELECT media_url FROM " . DB_PREFIX . "auction_media WHERE
       			auction_id='" . $other_items[$counter]['auction_id'] . "' AND media_type=1 AND upload_in_progress=0 ORDER BY media_id ASC LIMIT 0,1", 'media_url');
-
       		$auction_link = process_link('auction_details', array('name' => $other_items[$counter]['name'], 'auction_id' => $other_items[$counter]['auction_id']));?>
          <table width="100%" border="0" cellspacing="3" cellpadding="3">
             <tr>
@@ -676,13 +667,11 @@ function openPopup(url) {
          </table>
          <?php } ?></td>
       <?php } ?>
-
    </tr>
 </table>
 <br>
 <?php } ?>
 <br>
-
 <?php if ($ad_display == 'live') { ?>
 <table width=100% border=0 cellspacing=0 cellpadding=0>
    <tr>
@@ -695,6 +684,5 @@ function openPopup(url) {
    </tr>
 </table>
 <br />
-
 <?php } ?>
 <?php echo $auction_print_footer;?>

@@ -5,22 +5,15 @@
 ## Copyright ©2009 MyPHPAuction. All rights reserved.	##
 ##-------------------------------------------------------------##
 #################################################################
-
 $fileExtension = (file_exists('includes/global.php')) ? '' : '../';
-
 include_once ($fileExtension.'includes/config.php');
-
-
 define('INCLUDED', 1);
-
 define('DEFAULT_DB_LANGUAGE', 'english');
-
 function getmicrotime()
 {
    list($usec, $sec) = explode(" ", microtime());
    return ((float)$usec + (float)$sec);
 }
-
 if(!function_exists('memory_get_usage'))
 {
 	function memory_get_usage()
@@ -29,7 +22,6 @@ if(!function_exists('memory_get_usage'))
 		{
 			$output = array();
 			exec( 'tasklist /FI "PID eq ' . getmypid() . '" /FO LIST', $output );
-
 			return preg_replace( '/[\D]/', '', $output[5] ) * 1024;
 		}
 		else
@@ -43,38 +35,27 @@ if(!function_exists('memory_get_usage'))
 		}
 	}
 }
-
 $time_start = getmicrotime();
 ##$memory_start = memory_get_usage();
-
 include_once ($fileExtension.'language/'.DEFAULT_DB_LANGUAGE.'/db.lang.php');
-
 include_once ($fileExtension.'includes/class_database.php');
-
 $db = new database;
-
 $db->connect($db_host, $db_username, $db_password);
 $db->select_db($db_name);
 $db->display_errors = true;
 include_once ($fileExtension.'includes/class_session.php'); ## global
 ## create the session class, will contain all session variables.
 $session = new session;
-
 include_once ($fileExtension.'includes/init.php'); ## global
 $current_version = '6.05';
-
 include_once ($fileExtension.'includes/functions_security.php');
-
 cleanData();
-
 /**
  * sanitize order_type and order_field variables
  */
 if(isset($_REQUEST['order_type'])){
 	$_REQUEST['order_type'] = (in_array($_REQUEST['order_type'], array('ASC', 'DESC'))) ? $_REQUEST['order_type'] : 'DESC';
 }
-
-
 if (!empty($_REQUEST['order_field']))
 {
 	$order_field_explode = explode(' ', $_REQUEST['order_field']);
@@ -84,17 +65,13 @@ if (!empty($_REQUEST['order_field']))
 		die('Fatal Error: Query Prohibited');
 	}	
 }
-
 include_once ($fileExtension.'includes/functions.php'); ## global
-
 @include_once ($fileExtension.'includes/functions_integration.php'); ## PPB & PPA Integration
-
 ## now do the theme alterations in case of categories and auction_details
 $is_custom_skin = 0;
 if (preg_match("/categories.php/i", $_SERVER['PHP_SELF']))
 {
 	$category_id = $db->main_category(intval($_GET['parent_id']));
-
 	$is_custom_skin = 1;
 }
 else if (preg_match("/auction_details.php/i", $_SERVER['PHP_SELF']))
@@ -106,7 +83,6 @@ else if (preg_match("/auction_details.php/i", $_SERVER['PHP_SELF']))
 	
 	$is_custom_skin = 1;
 }
-
 if ($is_custom_skin)
 {
 	$custom_skin = $db->get_sql_field("SELECT custom_skin FROM " . DB_PREFIX . "categories WHERE 
@@ -118,70 +94,49 @@ if ($is_custom_skin)
 		define ('DEFAULT_THEME', $custom_skin);
 	}
 }
-
 unlink_pin();
-
 include_once ($fileExtension.'includes/class_template.php');
-
 ## initialize the template for the output that will be generated
 $template = new template('templates/');
-
 $template->set('setts', $setts);
 $template->set('layout', $layout);
 $template->set('current_version', $current_version);
 $template->set('is_seller', $session->value('is_seller'));
-
 (string) $template_output = NULL;
-
 if ($setts['maintenance_mode'] && $session->value('adminarea')!='Active' && IN_ADMIN != 1)
 {
 	$template_output = $template->process('maintenance_splash_page.tpl.php');
-
 	echo $template_output;
 	die();
 }
-
 include_once ($fileExtension.'includes/class_voucher.php');
 include_once ($fileExtension.'includes/class_fees_main.php');
 include_once ($fileExtension.'includes/class_tax.php');
-
 $fees = new fees_main();
 $fees->setts = &$setts;
 $template->set('fees', $fees);
-
 $template->set('db', $db);
-
 include_once ($fileExtension.'includes/class_banner.php');
-
 ## classes used in most files will be initialized here.
-
 include_once ($fileExtension.'includes/functions_date.php');
-
 ## declare all the pages that can contain custom fields
 $custom_fields_pages = array ('register', 'reputation_sale', 'reputation_purchase', 'auction', 'wanted_ad');
-
 ## custom section pages
 $custom_section_pages = array ('help', 'news', 'faq', 'custom_page', 'announcements');
 $custom_section_pages_ordering = array('help', 'faq', 'custom_page');
-
 $custom_pages = array('about_us', 'contact_us', 'terms', 'privacy');
-
 ## declare all tables that are linkable to custom fields
 $linkable_tables = array('countries');
-
 ## load the cron if it is run from the site.
 if ($setts['cron_job_type'] == 2 && IN_ADMIN != 1)
 {
 	$manual_cron = true;
 	include_once ($fileExtension . 'cron_jobs/main_cron.php');
 }
-
 $auction_ordering = array('a.name', 'a.start_price', 'a.max_bid', 'a.nb_bids', 'a.end_time');
 $order_types = array('DESC', 'ASC');
 ## suspend user accounts that are over the debit limit. -> placeholder
-
 ### IP Logging addon, created by Kevin
-
 if ($session->value('user_id') > 0) 
 {
 	$set = 0;
@@ -204,7 +159,6 @@ if ($session->value('user_id') > 0)
 			{
 				$db->query("UPDATE " . DB_PREFIX . "iphistory SET time2='" . CURRENT_TIME . "' WHERE 
 					time1='" . $ip_details['time1'] . "' AND ip='" . $ip_details['ip'] . "'");
-
 				$set = 1;
 			}
 		}
@@ -216,8 +170,6 @@ if ($session->value('user_id') > 0)
 			('" . $session->value('user_id') . "', '" . CURRENT_TIME . "', '0', '" . $_SERVER['REMOTE_ADDR'] . "')");
 	}
 }
-
 include_once ($fileExtension.'includes/class_shop.php');
 include_once ($fileExtension.'includes/functions_addons.php');
-
 ?>
